@@ -291,22 +291,24 @@ export default {
             },
         ],
         functionParameter: {
-            number1: { name: 'number1', detail: 'first' },
-            number2: { name: 'number2', detail: 'second' },
+            text: { name: 'text', detail: '必需。包含您要提取的字符的文本字符串。' },
+            startNum: { name: 'start_num', detail: '必需。您希望从文本中提取的第一个字符的位置。' },
+            numChars: { name: 'num_chars', detail: '必需。指定MID应从文本中返回的字符数。' },
         },
     },
     MIDB: {
-        description: '从文本字符串中的指定位置起返回特定个数的字符',
-        abstract: '从文本字符串中的指定位置起返回特定个数的字符',
+        description: 'Returns a specific number of characters from a text string, starting at the position you specify, based on the number of bytes you specify.',
+        abstract: 'Returns a specific number of characters from a text string, starting at the position you specify, based on the number of bytes you specify.',
         links: [
             {
-                title: '教学',
-                url: 'https://support.microsoft.com/zh-cn/office/mid-midb-%E5%87%BD%E6%95%B0-d5f9e25c-d7d6-472e-b568-4ecb12433028',
+                title: 'Instruction',
+                url: 'https://support.microsoft.com/en-us/office/mid-midb-functions-d5f9e25c-d7d6-472e-b568-4ecb12433028',
             },
         ],
         functionParameter: {
-            number1: { name: 'number1', detail: 'first' },
-            number2: { name: 'number2', detail: 'second' },
+            text: { name: 'text', detail: 'Required. The text string containing the characters you want to extract.' },
+            startNum: { name: 'start_num', detail: 'Required. The position of the first character you want to extract in text. ' },
+            numChars: { name: 'num_bytes', detail: 'Required. Specifies the number of characters you want MIDB to return from text, in bytes.' },
         },
     },
     NUMBERVALUE: {

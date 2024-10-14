@@ -20,7 +20,8 @@ import { Len } from './len';
 import { Lenb } from './lenb';
 import { Text } from './text';
 import { Lower } from './lower';
-import { Leftb } from './leftb';
+import { Mid } from './mid';
+import { Midb } from './midb';
 
 export const functionText = [
     [Concatenate, FUNCTION_NAMES_TEXT.CONCATENATE],
@@ -28,5 +29,6 @@ export const functionText = [
     [Lenb, FUNCTION_NAMES_TEXT.LENB],
     [Text, FUNCTION_NAMES_TEXT.TEXT],
     [Lower, FUNCTION_NAMES_TEXT.LOWER],
-    [Leftb, FUNCTION_NAMES_TEXT.LEFTB],
+    [Mid, FUNCTION_NAMES_TEXT.MID],
+    [Midb, FUNCTION_NAMES_TEXT.MIDB],
 ];

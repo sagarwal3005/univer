@@ -291,22 +291,24 @@ export default {
             },
         ],
         functionParameter: {
-            number1: { name: 'number1', detail: 'первый' },
-            number2: { name: 'number2', detail: 'второй' },
+            text: { name: 'text', detail: 'Обязательно. Строка текста, содержащая символы, которые вы хотите извлечь.' },
+            startNum: { name: 'start_num', detail: 'Обязательно. Позиция первого символа, который вы хотите извлечь из текста.' },
+            numChars: { name: 'num_chars', detail: 'Обязательно. Указывает количество символов, которые MID должен вернуть из текста.' },
         },
     },
     MIDB: {
-        description: 'Возвращает определенное количество символов из текстовой строки, начиная с указанной позиции',
-        abstract: 'Возвращает определенное количество символов из текстовой строки, начиная с указанной позиции',
+        description: 'Returns a specific number of characters from a text string, starting at the position you specify, based on the number of bytes you specify.',
+        abstract: 'Returns a specific number of characters from a text string, starting at the position you specify, based on the number of bytes you specify.',
         links: [
             {
-                title: 'Инструкция',
-                url: 'https://support.microsoft.com/ru-ru/office/mid-midb-functions-d5f9e25c-d7d6-472e-b568-4ecb12433028',
+                title: 'Instruction',
+                url: 'https://support.microsoft.com/en-us/office/mid-midb-functions-d5f9e25c-d7d6-472e-b568-4ecb12433028',
             },
         ],
         functionParameter: {
-            number1: { name: 'number1', detail: 'первый' },
-            number2: { name: 'number2', detail: 'второй' },
+            text: { name: 'text', detail: 'Required. The text string containing the characters you want to extract.' },
+            startNum: { name: 'start_num', detail: 'Required. The position of the first character you want to extract in text. ' },
+            numChars: { name: 'num_bytes', detail: 'Required. Specifies the number of characters you want MIDB to return from text, in bytes.' },
         },
     },
     NUMBERVALUE: {
