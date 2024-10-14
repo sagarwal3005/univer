@@ -15,69 +15,154 @@
  */
 
 import { ErrorType } from '../../../basics/error-type';
-import { charLenByte } from '../../../engine/utils/char-kit';
-import { type BaseValueObject, ErrorValueObject } from '../../../engine/value-object/base-value-object';
-import { StringValueObject } from '../../../engine/value-object/primitive-object';
+import { expandArrayValueObject } from '../../../engine/utils/array-object';
+import { ArrayValueObject } from '../../../engine/value-object/array-value-object';
+import type { BaseValueObject } from '../../../engine/value-object/base-value-object';
 import { BaseFunction } from '../../base-function';
+import { charLenByte } from '../../../engine/utils/char-kit';
 
 export class Midb extends BaseFunction {
     override minParams = 3;
-
     override maxParams = 3;
 
-    override calculate(text: BaseValueObject, start: BaseValueObject, byteLength: BaseValueObject) {
-        if (text.isError() || start.isError() || byteLength.isError()) {
-            return ErrorValueObject.create(ErrorType.VALUE);
+    override calculate(text: BaseValueObject, startByte: BaseValueObject, numBytes: BaseValueObject) {
+        if (text.isError()) {
+            return text;
         }
 
-        if (text.isNull()) {
-            return StringValueObject.create('');
+        if (startByte.isError() || numBytes.isError()) {
+            return startByte.isError() ? startByte : numBytes;
         }
 
-        return this._handleSingleText(text, start, byteLength);
+        if (text.isArray()) {
+            const maxRowLength = Math.max(
+                text.isArray() ? (text as ArrayValueObject).getRowCount() : 1,
+                startByte && startByte.isArray() ? (startByte as ArrayValueObject).getRowCount() : 1,
+                numBytes && numBytes.isArray() ? (numBytes as ArrayValueObject).getRowCount() : 1
+            );
+
+            const maxColumnLength = Math.max(
+                text.isArray() ? (text as ArrayValueObject).getColumnCount() : 1,
+                startByte && startByte.isArray() ? (startByte as ArrayValueObject).getColumnCount() : 1,
+                numBytes && numBytes.isArray() ? (numBytes as ArrayValueObject).getColumnCount() : 1
+            );
+
+            const textArray = expandArrayValueObject(maxRowLength, maxColumnLength, text);
+            const startByteArray = expandArrayValueObject(maxRowLength, maxColumnLength, startByte);
+            const numBytesArray = expandArrayValueObject(maxRowLength, maxColumnLength, numBytes);
+
+            const results: (string | number | boolean | null)[][] = []; // Adjusted type
+            for (let rowIndex = 0; rowIndex < maxRowLength; rowIndex++) {
+                const row: (string | number | boolean | null)[] = []; // Adjusted type
+                for (let columnIndex = 0; columnIndex < maxColumnLength; columnIndex++) {
+                    const textValue = textArray.get(rowIndex, columnIndex);
+                    if (textValue?.isError()) {
+                        row.push(null);
+                        continue;
+                    }
+
+                    const startByteValue = startByteArray.get(rowIndex, columnIndex);
+                    const numBytesValue = numBytesArray.get(rowIndex, columnIndex);
+
+                    if (startByteValue?.isError() || numBytesValue?.isError()) {
+                        row.push(null);
+                        continue;
+                    }
+
+                    const startByteNumber = startByteValue?.getValue() as number | undefined;
+                    const numBytesNumber = numBytesValue?.getValue() as number | undefined;
+
+                    if (typeof startByteNumber !== 'number' || startByteNumber < 1 || typeof numBytesNumber !== 'number' || numBytesNumber < 0) {
+                        row.push(null);
+                        continue;
+                    }
+
+                    const textString = `${textValue?.getValue()}`;
+                    const byteLength = charLenByte(textString);
+
+                    if (numBytesNumber === 0) {
+                        row.push(''); // Changed to a string
+                        continue;
+                    }
+
+                    if (startByteNumber > byteLength) {
+                        row.push(null);
+                        continue;
+                    }
+
+                    const endByteNumber = Math.min(startByteNumber - 1 + numBytesNumber, byteLength);
+                    row.push(
+                        this.sliceTextByBytes(textString, startByteNumber - 1, endByteNumber - (startByteNumber - 1))
+                    ); // Push the resulting string directly
+                }
+                results.push(row);
+            }
+
+            return ArrayValueObject.createByArray(results); // results should be valid
+        }
+
+        return this._handleSingleText(text, startByte, numBytes);
     }
 
-    private _sliceByBytes(text: string, start: number, byteLength: number): string {
+    private _handleSingleText(text: BaseValueObject, startByte: BaseValueObject, numBytes: BaseValueObject) {
+        if (text.isError()) {
+            return text;
+        }
+
+        const textString = `${text.getValue()}`;
+        const startByteNumber = startByte.getValue() as number | undefined;
+        const numBytesNumber = numBytes.getValue() as number | undefined;
+
+        if (typeof startByteNumber !== 'number' || startByteNumber < 1 || typeof numBytesNumber !== 'number' || numBytesNumber < 0) {
+            return ArrayValueObject.createByArray([[ErrorType.VALUE]]); // Changed to use ErrorType.VALUE directly
+        }
+
+        if (numBytesNumber === 0) {
+            return ArrayValueObject.createByArray([['']]); // Return an empty string directly
+        }
+
+        const byteLength = charLenByte(textString);
+
+        if (startByteNumber > byteLength) {
+            return ArrayValueObject.createByArray([[ErrorType.VALUE]]); // Use ErrorType.VALUE directly
+        }
+
+        const endByteNumber = Math.min(startByteNumber - 1 + numBytesNumber, byteLength);
+
+        // Get the sliced string directly and return it
+        return ArrayValueObject.createByArray([[this.sliceTextByBytes(textString, startByteNumber - 1, endByteNumber - (startByteNumber - 1))]]);
+    }
+
+    private sliceTextByBytes(text: string, startByte: number, numBytes: number): string {
         let byteCount = 0;
-        let result = '';
+        let start = 0;
+        let end = 0;
 
         for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            const charByteLen = new TextEncoder().encode(char).length;
+            const char = text.charAt(i);
+            const charBytes = new TextEncoder().encode(char).length;
 
-            if (byteCount >= start && byteCount < start + byteLength) {
-                result += char;
-            }
-
-            byteCount += charByteLen;
-
-            if (byteCount >= start + byteLength) {
+            if (byteCount >= startByte) {
+                start = i;
                 break;
             }
+            byteCount += charBytes;
         }
 
-        return result;
-    }
+        byteCount = 0;
+        for (let i = start; i < text.length; i++) {
+            const char = text.charAt(i);
+            const charBytes = new TextEncoder().encode(char).length;
 
-    private _handleSingleText(text: BaseValueObject, start: BaseValueObject, byteLength: BaseValueObject) {
-        if (!text.isString() || !start.isNumber() || !byteLength.isNumber()) {
-            return ErrorValueObject.create(ErrorType.VALUE);
+            if (byteCount >= numBytes) {
+                end = i;
+                break;
+            }
+            byteCount += charBytes;
         }
 
-        const textValue = text.getValue().toString();
-        const startValue = start.getValue() as number;
-        const byteLengthValue = byteLength.getValue() as number;
-
-        const textByteLen = charLenByte(textValue);
-
-        // Handle out-of-bounds or invalid start/byte length
-        if (startValue <= 0 || byteLengthValue < 0 || startValue > textByteLen) {
-            return StringValueObject.create('');
-        }
-
-        // Extract the substring based on byte range
-        const result = this._sliceByBytes(textValue, startValue - 1, byteLengthValue);
-
-        return StringValueObject.create(result);
+        end = end || text.length;
+        return text.substring(start, end);
     }
 }
+
