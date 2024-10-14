@@ -298,17 +298,18 @@ export default {
         },
     },
     MIDB: {
-        description: '文字列の任意の位置から指定された文字数の文字を返します。',
-        abstract: '文字列の任意の位置から指定された文字数の文字を返します。',
+        description: 'Returns a specific number of characters from a text string, starting at the position you specify, based on the number of bytes you specify.',
+        abstract: 'Returns a specific number of characters from a text string, starting at the position you specify, based on the number of bytes you specify.',
         links: [
             {
-                title: '指導',
-                url: 'https://support.microsoft.com/ja-jp/office/mid-%E9%96%A2%E6%95%B0-midb-%E9%96%A2%E6%95%B0-d5f9e25c-d7d6-472e-b568-4ecb12433028',
+                title: 'Instruction',
+                url: 'https://support.microsoft.com/en-us/office/mid-midb-functions-d5f9e25c-d7d6-472e-b568-4ecb12433028',
             },
         ],
         functionParameter: {
-            number1: { name: 'number1', detail: 'first' },
-            number2: { name: 'number2', detail: 'second' },
+            text: { name: 'text', detail: 'Required. The text string containing the characters you want to extract.' },
+            startNum: { name: 'start_num', detail: 'Required. The position of the first character you want to extract in text. ' },
+            numChars: { name: 'num_bytes', detail: 'Required. Specifies the number of characters you want MIDB to return from text, in bytes.' },
         },
     },
     NUMBERVALUE: {
